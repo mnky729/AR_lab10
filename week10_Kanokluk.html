@@ -1,0 +1,205 @@
+<!--Kanokluk Supthamrong-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script>
+    // Global state for marker visibility 
+    const marker_visible = {
+      'human': false,
+      'orc': false
+    };
+
+    // First component: Marker event handling 
+    AFRAME.registerComponent("marker-events", {
+      init: function () {
+        let el = this.el;
+
+        // Your task: Add event listeners for targetFound and targetLost 
+        // Each should update marker_visible state and log to console 
+        // Hint: el.addEventListener("targetFound", function() { ... }); 
+        el.addEventListener("targetFound", function () {
+          marker_visible[el.id] = true;  // Update state  
+          console.log("targetFound: " + el.id); // Log event 
+        });
+        el.addEventListener("targetLost", function () {
+          marker_visible[el.id] = false;  // Update state 
+          console.log("targetLost: " + el.id); // Log event 
+        });
+      }
+    });
+
+    // Second component: Spear animation 
+    AFRAME.registerComponent("animate-spear", {
+      init: function () {
+        // Your task: Initialize necessary references and variables 
+        // 1. Get marker references using querySelector   
+        // 2. Get spear reference 
+        // 3. Create THREE.Vector3 objects for positions 
+        // 4. Add animation state tracking 
+        // this.humanMarker = document.querySelector("human");
+        // this.orcMarker = document.querySelector("orc");
+        // this.spear = orcMarker.spear;
+        this.humanMarker = document.querySelector("#human");
+        this.orcMarker = document.querySelector("#orc");
+        this.spear = document.querySelector("#spear");
+        if (!this.humanMarker || !this.orcMarker || !this.spear) {
+          console.error("Failed to find one or more elements (markers or spear).");
+          return;
+        }
+        console.log("humanMarker: " + this.humanMarker);
+        console.log("orcMarker: " + this.orcMarker);
+        console.log("spear: " + this.spear);
+
+        // Initialize vectors for position calculations
+        this.humanPosition = new THREE.Vector3();
+        this.orcPosition = new THREE.Vector3();
+
+        // Track animation state
+        // this.spearActive = false;
+        this.currentTarget = "orc"; // Start targeting the orc first
+
+
+
+      },
+
+      tick: function () {
+        // Your task: Implement the animation logic 
+        // 1. Check if both markers are visible 
+        // 2. If yes and animation not set: 
+        //    - Get world positions 
+        //    - Calculate relative position 
+        //    - Set up animation 
+        // 3. If either marker lost: 
+        //    - Hide spear 
+        //    - Reset animation state '
+
+        // Check marker visibility example 
+        if (marker_visible['human'] && marker_visible['orc']) {
+          // Your animation code here 
+          // Ensure spear is visible and active
+          console.log("Animating Spear!");
+          // if (!this.spearActive) {
+          //   this.spear.object3D.visible = true;
+          //   this.spearActive = true;
+          // }
+          // Get world positions of both markers
+          this.humanMarker.object3D.getWorldPosition(this.humanPosition);
+          this.orcMarker.object3D.getWorldPosition(this.orcPosition);
+
+          // Determine animation target based on the current target
+          // const fromPosition =
+          //   this.currentTarget === "orc"
+          //     ? this.humanPosition
+          //     : this.orcPosition;
+          // const toPosition =
+          //   this.currentTarget === "orc"
+          //     ? this.orcPosition
+          //     : this.humanPosition;
+
+          // Trigger spear animation
+          // this.spear.setAttribute("animation", {
+          //   property: "position",
+          //   from: `${fromPosition.x} ${fromPosition.y} ${fromPosition.z}`,
+          //   to: `${toPosition.x} ${toPosition.y} ${toPosition.z}`,
+          //   dur: 2000,
+          //   easing: "easeInOutQuad",
+          //   loop: false, // Single animation cycle
+          // });
+
+          // const scale = 1.0/1600; 
+          const scale = 1.0;
+          console.log("Scale distance between markers: " , this.orcPosition.distanceTo(this.humanPosition) * scale);
+          console.log("Launching Spear!");
+          console.log("humanPosition: ",`${this.humanPosition.x} ${this.humanPosition.y} ${this.humanPosition.z}`);
+          console.log("orcPosition", `${this.orcPosition.x} ${this.orcPosition.y} ${this.orcPosition.z}`);
+          let relativePos = this.humanPosition.clone().sub(this.orcPosition);
+          relativePos.multiplyScalar(scale);
+          console.log("relativePos: ", relativePos);
+          
+          // console.log(this.spear.object3D.getWorldPosition();
+          // this.spear.setAttribute("animation", {
+          //   property: "position",
+          //   from: `${this.humanPosition.x} ${this.humanPosition.y} ${this.humanPosition.z}`,
+          //   to: `${this.orcPosition.x} ${this.orcPosition.y} ${this.orcPosition.z}`,
+          //   dur: 2000,
+          //   dir: 'alternate', 
+          //   easing: "easeInOutQuad",
+          //   loop: true, 
+          // });
+
+          this.spear.setAttribute("animation", {
+            property: "position",
+            from: "0 0 0",
+            to: `${relativePos.x} ${relativePos.y} ${relativePos.z}`,
+            dur: 5000,
+            dir: 'alternate', 
+            easing: "easeInOutQuad",
+            loop: true, 
+          });
+
+          // Switch target after the animation is complete
+          setTimeout(() => {
+            this.currentTarget =
+              this.currentTarget === "orc" ? "human" : "orc";
+          }, 2000); // Match the duration of the animation
+        }
+        else {
+          console.log("Cant detect both human and orc!");
+          // Hide spear and reset state if any marker is lost
+          // this.spear.object3D.visible = false;
+          // this.spearActive = false;
+        }
+
+        // Position calculation example 
+        // element.object3D.getWorldPosition(vector); 
+
+        // // Animation setting example 
+        // element.setAttribute('animation', { 
+        //   property: 'position', 
+        //   from: "0 0 0", 
+        //   to: "1 1 1", 
+        //   dur: 2000, 
+        //   dir: 'alternate', 
+        //   loop: true, 
+        //   easing: 'easeInOutQuad' 
+        // }); 
+
+      }
+    }); 
+  </script>
+</head>
+
+<body>
+  <a-scene mindar-image="imageTargetSrc: Assets/human-orc-targets.mind; maxTrack: 2" color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets>
+      <img id="card-human" src="Assets/card-human.png" />
+      <img id="card-orc" src="Assets/card-orc.png" />
+      <a-asset-item id="model-human" src="Assets/character-human.glb"></a-asset-item>
+      <a-asset-item id="model-orc" src="Assets/character-orc.glb"></a-asset-item>
+      <a-asset-item id="model-spear" src="Assets/weapon-spear.glb"></a-asset-item>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity id="human" mindar-image-target="targetIndex: 0" marker-events>
+      <a-plane src="#card-human" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
+      <a-gltf-model src="#model-human" scale="1 1 1" position="0 0 0" rotation="45 0 0"></a-gltf-model>
+    </a-entity>
+
+    <a-entity id="orc" mindar-image-target="targetIndex: 1" marker-events>
+      <a-plane src="#card-orc" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
+      <a-gltf-model src="#model-orc" scale="1 1 1" position="0 0 0" rotation="45 0 0"></a-gltf-model>
+      <a-gltf-model id="spear" src="#model-spear" scale="1 1 1" position="-0.33 -0.03 0" rotation="45 0 0">
+      </a-gltf-model>
+    </a-entity>
+    <a-entity animate-spear></a-entity>
+  </a-scene>
+</body>
